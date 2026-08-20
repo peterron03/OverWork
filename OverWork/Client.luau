@@ -16,12 +16,23 @@ const Mouse = Player:GetMouse()
 
 -- MODULES --
 const Controllers = ReplicatedStorage:WaitForChild("Controllers"):GetChildren()
+const Signal = require(ReplicatedStorage.Packages.Signal)
 
 -- MAIN --
 const Client = {
 	Controllers = {},
 	Remotes = ReplicatedStorage:WaitForChild("Remotes"),
-	Values = ReplicatedStorage:WaitForChild("Values")
+	Values = ReplicatedStorage:WaitForChild("Values"),
+	EventReceived = Signal.new()
+}
+
+-- TYPES --
+export type Signal = typeof(Signal.new())
+
+export type Client = {
+	EventReceived : Signal,
+	InvokeService : (self : Client, serviceName : string, funcName : string, ... any) -> (),
+	Init : (self : Client) -> (number)
 }
 
 function Client:InvokeService(serviceName : string, funcName : string, ...)
@@ -60,22 +71,22 @@ function Client:Init()
 		end
 	end
 
-	const function HandleRemotes(remotesFolder)
+	const function HandleRemotes(remotesFolder : Folder)
 		if not remotesFolder:IsA("Folder") then return end
-
-		for _, remote in remotesFolder:GetChildren() do
+		
+		const function HandleRemote(remote : RemoteEvent)
 			remote.OnClientEvent:Connect(function(...)
 				const serviceSplit = string.split(remotesFolder.Name, "Service")[1]			
 				HandleFunction("On" .. serviceSplit .. remote.Name, ...)
+				self.EventReceived:Fire(remotesFolder.Name, remote.Name, ...)
 			end)
 		end
 
-		remotesFolder.ChildAdded:Connect(function(remote)
-			remote.OnClientEvent:Connect(function(...)
-				const serviceSplit = string.split(remotesFolder.Name, "Service")[1]			
-				HandleFunction("On" .. serviceSplit .. remote.Name, ...)
-			end)
-		end)
+		for _, remote in remotesFolder:GetChildren() do
+			task.spawn(HandleRemote, remote)
+		end
+
+		remotesFolder.ChildAdded:Connect(HandleRemote)
 	end
 
 	UserInputService.InputBegan:Connect(function(inputObject, gameProcessedEvent)
