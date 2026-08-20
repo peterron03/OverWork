@@ -6,11 +6,37 @@ This handles setting up everything needed for OverWork; should be initialized fr
 
 -- SERVICES --
 const RunService = game:GetService("RunService")
+const ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+-- MODULES --
+const Signal = require(ReplicatedStorage.Packages.Signal)
+
+-- TYPES --
+export type Signal = typeof(Signal.new())
+
+export type RemoteType = (
+	"Event" | "Function"
+)
+
+export type ValueType = (
+	"Bool" | "BrickColor" | "CFrame" | "Color3" | "Int" | "Number" | "Object" | "Ray" | "String" | "Vector3"
+)
+
+export type Server = {
+	CreateRemote : (self : Server, remoteType : RemoteType, remoteName : string) -> (RemoteEvent | RemoteFunction),
+	CreateValue : (self : Server, valueType : ValueType, valueName : string) -> (ValueBase),
+	Init : (self : Server) -> (number)
+}
+
+export type Client = {
+	EventReceived : Signal,
+	InvokeService : (self : Client, serviceName : string, funcName : string, ... any) -> (),
+	Init : (self : Client) -> (number)
+}
 -- MAIN -- 
 const OverWork = {
-	Server = RunService:IsServer() and require(script.Server),
-	Client = RunService:IsClient() and require(script.Client)
+	Server = (RunService:IsServer() and require(script.Server)) :: Server,
+	Client = (RunService:IsClient() and require(script.Client)) :: Client
 }
 
 function OverWork:Init()
