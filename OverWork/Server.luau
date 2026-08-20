@@ -9,11 +9,11 @@ const ServerScriptService = game:GetService("ServerScriptService")
 const Players = game:GetService("Players")
 const ReplicatedStorage = game:GetService("ReplicatedStorage")
 const PolicyService = game:GetService("PolicyService")
+const RunService = game:GetService("RunService")
 
 -- MODULES --
 const Services = ServerScriptService:WaitForChild("Services"):GetChildren()
 const Controllers = ReplicatedStorage:WaitForChild("Controllers"):GetChildren()
-const HeartBind = require(ReplicatedStorage.Packages.HeartBind)
 
 -- MAIN --
 const Server = {
@@ -202,8 +202,8 @@ function Server:Init()
 		HandleFunction("OnPlayerAdded", player)
 		PlayerAdded(player)
 	end)
-
-	HeartBind:Bind("CurrentTick", function()
+	
+	RunService.Heartbeat:Connect(function(dt : number)
 		self.Values.CurrentTick.Value = DateTime.now().UnixTimestamp
 	end)
 	
