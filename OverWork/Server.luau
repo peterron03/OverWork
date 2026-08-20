@@ -15,6 +15,13 @@ const Services = ServerScriptService:WaitForChild("Services"):GetChildren()
 const Controllers = ReplicatedStorage:WaitForChild("Controllers"):GetChildren()
 const HeartBind = require(ReplicatedStorage.Packages.HeartBind)
 
+-- MAIN --
+const Server = {
+	Services = {},
+	Remotes = ReplicatedStorage:FindFirstChild("Remotes") or Instance.new("Folder"),
+	Values = ReplicatedStorage:FindFirstChild("Values") or Instance.new("Folder")
+}
+
 -- TYPES --
 export type RemoteType = (
 	"Event" | "Function"
@@ -24,11 +31,10 @@ export type ValueType = (
 	"Bool" | "BrickColor" | "CFrame" | "Color3" | "Int" | "Number" | "Object" | "Ray" | "String" | "Vector3"
 )
 
--- MAIN --
-const Server = {
-	Services = {},
-	Remotes = ReplicatedStorage:FindFirstChild("Remotes") or Instance.new("Folder"),
-	Values = ReplicatedStorage:FindFirstChild("Values") or Instance.new("Folder")
+export type Server = {
+	CreateRemote : (self : Server, remoteType : RemoteType, remoteName : string) -> (RemoteEvent | RemoteFunction),
+	CreateValue : (self : Server, valueType : ValueType, valueName : string) -> (ValueBase),
+	Init : (self : Server) -> (number)
 }
 
 do
@@ -38,16 +44,18 @@ do
 	Server.Values.Parent = ReplicatedStorage
 end
 
-function Server:CreateRemote(remoteType : RemoteType, remoteName : string)
+function Server:CreateRemote(remoteType : RemoteType, remoteName : string) : (RemoteEvent | RemoteFunction)
 	local newRemote = Instance.new(`Remote{remoteType}`)
 	newRemote.Name = remoteName
 	newRemote.Parent = self.Remotes
+	return newRemote
 end
 
-function Server:CreateValue(valueType : ValueType, valueName : string)
-	local newRemote = Instance.new(`{valueType}Value`)
-	newRemote.Name = valueName
-	newRemote.Parent = self.Values
+function Server:CreateValue(valueType : ValueType, valueName : string) : ValueBase
+	local newValue = Instance.new(`{valueType}Value`)
+	newValue.Name = valueName
+	newValue.Parent = self.Values
+	return newValue
 end
 
 function Server:Init()
