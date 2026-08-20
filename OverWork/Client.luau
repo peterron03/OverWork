@@ -96,9 +96,49 @@ function Client:Init()
 	UserInputService.InputEnded:Connect(function(inputObject, gameProcessedEvent)
 		HandleFunction("OnInputEnded", inputObject, gameProcessedEvent)
 	end)
+	
+	const GenericInputTypes = {
+		["Gamepad"] = {
+			Enum.UserInputType.Gamepad1,
+			Enum.UserInputType.Gamepad2,
+			Enum.UserInputType.Gamepad3,
+			Enum.UserInputType.Gamepad4,
+			Enum.UserInputType.Gamepad5,
+			Enum.UserInputType.Gamepad6,
+			Enum.UserInputType.Gamepad7,
+			Enum.UserInputType.Gamepad8
+		},
+
+		["Mobile"] = {
+			Enum.UserInputType.Touch
+		},
+
+		["Keyboard"] = {
+			Enum.UserInputType.MouseButton1,
+			Enum.UserInputType.MouseButton2,
+			Enum.UserInputType.MouseButton3,
+			Enum.UserInputType.MouseMovement,
+			Enum.UserInputType.MouseWheel,
+			Enum.UserInputType.Keyboard
+		}
+	}
+	
+	local lastGenericType = nil
 
 	UserInputService.LastInputTypeChanged:Connect(function(lastInputType)
 		HandleFunction("OnLastInputTypeChanged", lastInputType)
+		
+		for genericType, inputTypes in GenericInputTypes do
+			if table.find(inputTypes, lastInputType) then
+				if lastGenericType ~= genericType then
+					HandleFunction("OnLastGenericInputTypeChanged")
+				end
+				
+				lastGenericType = genericType
+				
+				break
+			end
+		end
 	end)
 
 	Player.CharacterAdded:Connect(function(character)
